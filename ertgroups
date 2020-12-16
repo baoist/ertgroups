@@ -1,0 +1,40 @@
+#!/usr/local/bin/lua
+
+local LibDeflate = require('./LibDeflate/LibDeflate')
+local Conversions = require('./Conversions/Conversions')
+local csv_data = arg[1]
+local header = 'EXRTRGR1'
+
+csv_data = csv_data:gsub('^--data=', '')
+
+if csv_data == '-D' then
+  csv_data = arg[2]
+end
+
+if csv_data == nil then
+  print("No data passed to script. Exiting.")
+  return
+end
+
+raid_groups = {}
+csv_lines = {}
+for line in csv_data:gmatch('[^\r\n]+') do table.insert(csv_lines, line) end
+for group_row_idx, group_row in ipairs({table.unpack(csv_lines, 1, 8)}) do
+  local line_player_names = {}
+  for player_name in group_row:gmatch('[^,]+') do table.insert(line_player_names, player_name) end
+
+  for player_name_idx, player_name in ipairs({table.unpack(line_player_names, 1, 5)}) do
+    player_position_in_raid = (group_row_idx - 1) * 5 + player_name_idx
+    raid_groups[player_position_in_raid] = player_name
+  end
+end
+
+raid_groups_as_text = Conversions:TableToText(raid_groups)
+print(table.concat(raid_groups_as_text))
+raid_groups_as_text[1] = "0,"..raid_groups_as_text[1]
+raid_groups_as_str = table.concat(raid_groups_as_text)
+
+compressed = LibDeflate:CompressDeflate(raid_groups_as_str,{level = 5})
+encoded = header..LibDeflate:EncodeForPrint(compressed)
+
+print(encoded)
