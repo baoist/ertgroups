@@ -30,7 +30,7 @@ for group_row_idx, group_row in ipairs({table.unpack(csv_lines, 1, 8)}) do
 end
 
 raid_groups_as_text = Conversions:TableToText(raid_groups)
-print(table.concat(raid_groups_as_text))
+--print(table.concat(raid_groups_as_text))
 raid_groups_as_text[1] = "0,"..raid_groups_as_text[1]
 raid_groups_as_str = table.concat(raid_groups_as_text)
 
